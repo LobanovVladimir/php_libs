@@ -19,19 +19,24 @@ jobs:
 
       - name: Create composer.json and install PhpSpreadsheet
         run: |
-          # Генерируем минимальный composer.json без интерактивных вопросов
-          composer init \
-            --name="build/phpspreadsheet-artifact" \
-            --description="Standalone build of PhpSpreadsheet" \
-            --require="phpoffice/phpspreadsheet" \
-            --no-interaction
+          cat > composer.json <<'EOF'
+          {
+              "name": "build/phpspreadsheet-artifact",
+              "description": "Standalone build of PhpSpreadsheet",
+              "require": {
+                  "phpoffice/phpspreadsheet": "^2.0"
+              },
+              "config": {
+                  "optimize-autoloader": true,
+                  "sort-packages": true
+              }
+          }
+          EOF
 
-          # Устанавливаем зависимости (prod, без dev)
-          composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader
+          composer install --no-dev --prefer-dist --no-progress --no-interaction
 
       - name: Verify installation
         run: |
-          # Проверяем, что библиотека реально установилась
           php -r "require 'vendor/autoload.php'; echo class_exists('PhpOffice\\PhpSpreadsheet\\Spreadsheet') ? 'OK' : 'FAIL';"
 
       - name: Prepare artifact (vendor + composer files)
